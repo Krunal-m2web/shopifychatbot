@@ -20,7 +20,9 @@
       "Bash(npx prisma migrate diff:*)",
       "Bash(npx prisma migrate:*)",
       "Bash(xargs basename:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nAdd explicit Vite resolve alias for ~ path\n\nThe vite-tsconfig-paths plugin wasn''t resolving the ~ alias\nreliably on Vercel''s Linux environment. Adding an explicit\nresolve.alias in vite.config.ts ensures it works everywhere.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")"
     ]
   }
 }
