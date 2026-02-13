@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npm run db:push:*)",
+      "Bash(ping:*)",
+      "Bash(npm pkg set:*)",
+      "Bash(findstr:*)",
+      "Bash(npm run db:test:*)",
+      "Bash(npm run db:vector-setup:*)",
+      "Bash(npx tsx:*)",
+      "Bash(npx prisma migrate resolve:*)",
+      "Bash(npm run:*)",
+      "Bash(taskkill:*)",
+      "Bash(npx prisma generate:*)",
+      "Bash(Get-Process node -ErrorAction SilentlyContinue)",
+      "Bash(curl:*)",
+      "Bash(tasklist:*)",
+      "Bash(npx prisma migrate dev:*)",
+      "Bash(npx prisma migrate diff:*)",
+      "Bash(npx prisma migrate:*)"
+    ]
+  }
+}

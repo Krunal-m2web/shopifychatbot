@@ -1,0 +1,15 @@
+# Railway configuration for BullMQ workers
+# Deploy this as a separate service from your main app
+
+[build]
+builder = "nixpacks"
+
+[deploy]
+startCommand = "npm run worker"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
+
+[[deploy.healthcheck]]
+httpPath = "/"
+interval = 60
+timeout = 10
