@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Order Lookup - Final Test</title>
+
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial,
+          sans-serif;
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+        background: #f9fafb;
+      }
+
+      .container {
+        background: white;
+        border-radius: 8px;
+        padding: 30px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        color: #1f4788;
+        margin: 0 0 10px 0;
+      }
+
+      .subtitle {
+        color: #6b7280;
+        margin-bottom: 30px;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 600;
+        color: #374151;
+        font-size: 14px;
+      }
+
+      input {
+        width: 100%;
+        padding: 12px;
+        font-size: 16px;
+        border: 2px solid #d1d5db;
+        border-radius: 6px;
+        transition: border-color 0.2s;
+      }
+
+      input:focus {
+        outline: none;
+        border-color: #1f4788;
+      }
+
+      .divider {
+        text-align: center;
+        margin: 20px 0;
+        color: #9ca3af;
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      button {
+        width: 100%;
+        background: #1f4788;
+        color: white;
+        padding: 14px;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+
+      button:hover {
+        background: #2e5c8a;
+      }
+
+      button:disabled {
+        background: #9ca3af;
+        cursor: not-allowed;
+      }
+
+      .result {
+        margin-top: 30px;
+        padding: 20px;
+        border-radius: 6px;
+        display: none;
+        white-space: pre-wrap;
+        font-family: monospace;
+        font-size: 14px;
+        line-height: 1.6;
+      }
+
+      .success {
+        background: #d1fae5;
+        border: 2px solid #059669;
+        color: #065f46;
+      }
+
+      .error {
+        background: #fee2e2;
+        border: 2px solid #dc2626;
+        color: #991b1b;
+      }
+
+      .test-data {
+        background: #f3f4f6;
+        padding: 20px;
+        border-radius: 6px;
+        margin-top: 30px;
+      }
+
+      .test-data h3 {
+        margin: 0 0 15px 0;
+        color: #374151;
+        font-size: 16px;
+      }
+
+      .test-order {
+        background: white;
+        padding: 12px;
+        border-radius: 4px;
+        margin-bottom: 10px;
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      .test-order strong {
+        color: #1f4788;
+        display: block;
+        margin-bottom: 4px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <h1>🔍 Order Lookup</h1>
+      <p class="subtitle">
+        Track your order status and get shipping information
+      </p>
+
+      <form id="lookupForm">
+        <div class="form-group">
+          <label for="orderNumber">Order Number *</label>
+          <input
+            type="number"
+            id="orderNumber"
+            placeholder="Enter your order number (e.g., 1001)"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" placeholder="you@example.com" />
+        </div>
+
+        <div class="divider">OR</div>
+
+        <div class="form-group">
+          <label for="zipCode">Billing ZIP Code</label>
+          <input
+            type="text"
+            id="zipCode"
+            placeholder="12345"
+            maxlength="5"
+            pattern="[0-9]{5}"
+          />
+        </div>
+
+        <button type="submit" id="submitBtn">Lookup Order</button>
+      </form>
+
+      <div id="result" class="result"></div>
+    </div>
+
+    <div class="test-data">
+      <h3>📋 Test Orders</h3>
+
+      <div class="test-order">
+        <strong>Order #1001 - Delivered</strong>
+        Email: john.doe@example.com<br />
+        ZIP: 12345<br />
+        Has tracking: UPS
+      </div>
+
+      <div class="test-order">
+        <strong>Order #1002 - Processing</strong>
+        Email: jane.smith@example.com<br />
+        ZIP: 90210<br />
+        No tracking yet
+      </div>
+
+      <div class="test-order">
+        <strong>Order #1003 - Partially Shipped</strong>
+        Email: bob.wilson@example.com<br />
+        ZIP: 10001<br />
+        Has tracking: USPS
+      </div>
+    </div>
+
+    <script>
+      const form = document.getElementById("lookupForm");
+      const submitBtn = document.getElementById("submitBtn");
+      const resultDiv = document.getElementById("result");
+      const emailInput = document.getElementById("email");
+      const zipInput = document.getElementById("zipCode");
+
+      // Clear opposite field
+      emailInput.addEventListener("input", () => {
+        if (emailInput.value) zipInput.value = "";
+      });
+
+      zipInput.addEventListener("input", () => {
+        if (zipInput.value) emailInput.value = "";
+      });
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const orderNumber = document.getElementById("orderNumber").value;
+        const email = emailInput.value;
+        const zipCode = zipInput.value;
+
+        if (!email && !zipCode) {
+          showResult(
+            "error",
+            "❌ Please enter either your email address or billing ZIP code."
+          );
+          return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Looking up...";
+
+        try {
+          const response = await fetch(
+            "http://localhost:5173/api/orders/lookup",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                orderNumber: parseInt(orderNumber),
+                email: email || undefined,
+                zipCode: zipCode || undefined,
+              }),
+            }
+          );
+
+          const data = await response.json();
+
+          if (data.success) {
+            showResult("success", data.message);
+          } else {
+            showResult("error", data.message);
+          }
+        } catch (error) {
+          showResult("error", "❌ Error connecting to server: " + error.message);
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Lookup Order";
+        }
+      });
+
+      function showResult(type, message) {
+        resultDiv.className = "result " + type;
+        resultDiv.textContent = message;
+        resultDiv.style.display = "block";
+        resultDiv.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+    </script>
+  </body>
+</html>

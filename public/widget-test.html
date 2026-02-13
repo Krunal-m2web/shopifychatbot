@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shopify AI Chat Widget - Test Page</title>
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial,
+          sans-serif;
+        line-height: 1.6;
+        color: #1f2937;
+      }
+
+      .hero {
+        background: linear-gradient(135deg, #1f4788 0%, #2e5c8a 100%);
+        color: white;
+        padding: 80px 20px;
+        text-align: center;
+      }
+
+      .hero h1 {
+        font-size: 48px;
+        margin-bottom: 16px;
+      }
+
+      .hero p {
+        font-size: 20px;
+        opacity: 0.9;
+      }
+
+      .content {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 60px 20px;
+      }
+
+      .section {
+        margin-bottom: 60px;
+      }
+
+      .section h2 {
+        font-size: 32px;
+        margin-bottom: 24px;
+        color: #1f4788;
+      }
+
+      .products {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 24px;
+        margin-top: 32px;
+      }
+
+      .product-card {
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+
+      .product-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+      }
+
+      .product-image {
+        width: 100%;
+        height: 200px;
+        background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 64px;
+      }
+
+      .product-info {
+        padding: 20px;
+      }
+
+      .product-title {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+
+      .product-price {
+        font-size: 24px;
+        color: #1f4788;
+        font-weight: 700;
+      }
+
+      .cta {
+        background: #f9fafb;
+        padding: 60px 20px;
+        text-align: center;
+      }
+
+      .cta h2 {
+        font-size: 32px;
+        margin-bottom: 16px;
+      }
+
+      .cta p {
+        font-size: 18px;
+        color: #6b7280;
+        margin-bottom: 32px;
+      }
+
+      .button {
+        display: inline-block;
+        background: #1f4788;
+        color: white;
+        padding: 16px 32px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: background 0.2s;
+      }
+
+      .button:hover {
+        background: #2e5c8a;
+      }
+
+      .widget-notice {
+        position: fixed;
+        bottom: 100px;
+        right: 100px;
+        background: #fef3c7;
+        border: 2px solid #f59e0b;
+        padding: 16px;
+        border-radius: 8px;
+        max-width: 300px;
+        font-size: 14px;
+        animation: slideIn 0.5s ease-out;
+      }
+
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateX(100px);
+        }
+
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      .widget-notice strong {
+        display: block;
+        margin-bottom: 8px;
+        color: #92400e;
+      }
+    </style>
+
+    <!-- Load Widget CSS -->
+    <link rel="stylesheet" href="./widget/shopify-ai-chat.css" />
+  </head>
+
+  <body>
+    <!-- Hero Section -->
+    <div class="hero">
+      <h1>🛍️ Shop AI-Powered Store</h1>
+      <p>Discover amazing products with AI assistance</p>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content">
+      <div class="section">
+        <h2>Featured Products</h2>
+
+        <div class="products">
+          <div class="product-card">
+            <div class="product-image">🎧</div>
+            <div class="product-info">
+              <div class="product-title">Premium Wireless Headphones</div>
+              <div class="product-price">$299.99</div>
+            </div>
+          </div>
+
+          <div class="product-card">
+            <div class="product-image">👕</div>
+            <div class="product-info">
+              <div class="product-title">Organic Cotton T-Shirt</div>
+              <div class="product-price">$29.99</div>
+            </div>
+          </div>
+
+          <div class="product-card">
+            <div class="product-image">💧</div>
+            <div class="product-info">
+              <div class="product-title">Stainless Steel Water Bottle</div>
+              <div class="product-price">$34.99</div>
+            </div>
+          </div>
+
+          <div class="product-card">
+            <div class="product-image">🧘</div>
+            <div class="product-info">
+              <div class="product-title">Yoga Mat Pro</div>
+              <div class="product-price">$59.99</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CTA Section -->
+    <div class="cta">
+      <h2>Need Help Shopping?</h2>
+      <p>Click the chat button to talk to our AI assistant!</p>
+      <a href="#" class="button">Start Shopping</a>
+    </div>
+
+    <!-- Widget Notice -->
+    <div class="widget-notice">
+      <strong>💬 Try the Chat Widget!</strong>
+      Click the chat button in the bottom right to start a conversation with our
+      AI assistant.
+    </div>
+
+    <!-- Initialize Widget Config -->
+    <script>
+      // Automatically detect API URL if hosted on same domain, otherwise use tunnel URL
+      const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      
+      window.ShopifyAIChatConfig = {
+        apiUrl: isLocal ? "http://localhost:5173" : window.location.origin,
+        merchantId: "1", // Using merchantId 1 for testing
+      };
+      
+      console.log("🚀 Widget initialized with API URL:", window.ShopifyAIChatConfig.apiUrl);
+    </script>
+
+    <!-- Load Widget Script -->
+    <script src="./widget/shopify-ai-chat.iife.js"></script>
+  </body>
+</html>

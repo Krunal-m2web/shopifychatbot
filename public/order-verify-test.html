@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Order Verification Test</title>
+
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 500px;
+        margin: 50px auto;
+        padding: 20px;
+      }
+
+      h1 {
+        color: #1f4788;
+      }
+
+      .form-group {
+        margin: 15px 0;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+      }
+
+      input {
+        width: 100%;
+        padding: 10px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+
+      button {
+        background: #1f4788;
+        color: white;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 4px;
+        font-size: 16px;
+        cursor: pointer;
+        width: 100%;
+        margin-top: 10px;
+      }
+
+      button:hover {
+        background: #2e5c8a;
+      }
+
+      .result {
+        margin-top: 20px;
+        padding: 15px;
+        border-radius: 4px;
+        display: none;
+      }
+
+      .success {
+        background: #d1fae5;
+        border: 1px solid #059669;
+        color: #065f46;
+      }
+
+      .error {
+        background: #fee2e2;
+        border: 1px solid #dc2626;
+        color: #991b1b;
+      }
+
+      .divider {
+        text-align: center;
+        margin: 10px 0;
+        color: #666;
+      }
+
+      .test-data {
+        background: #f3f4f6;
+        padding: 15px;
+        border-radius: 4px;
+        margin-top: 20px;
+        font-size: 14px;
+      }
+
+      .test-data h3 {
+        margin-top: 0;
+        color: #374151;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>🔍 Order Verification</h1>
+
+    <form id="verifyForm">
+      <div class="form-group">
+        <label for="orderNumber">Order Number</label>
+        <input
+          type="number"
+          id="orderNumber"
+          placeholder="e.g., 1001"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" placeholder="your@email.com" />
+      </div>
+
+      <div class="divider">- OR -</div>
+
+      <div class="form-group">
+        <label for="zipCode">Billing ZIP Code</label>
+        <input type="text" id="zipCode" placeholder="12345" maxlength="5" />
+      </div>
+
+      <button type="submit">Verify Order</button>
+    </form>
+
+    <div id="result" class="result"></div>
+
+    <div class="test-data">
+      <h3>Test Data:</h3>
+
+      <strong>Order #1001</strong><br />
+      Email: john.doe@example.com<br />
+      ZIP: 12345<br />
+      Status: Delivered<br /><br />
+
+      <strong>Order #1002</strong><br />
+      Email: jane.smith@example.com<br />
+      ZIP: 90210<br />
+      Status: Processing<br /><br />
+
+      <strong>Order #1003</strong><br />
+      Email: bob.wilson@example.com<br />
+      ZIP: 10001<br />
+      Status: Partially Shipped
+    </div>
+
+    <script>
+      document
+        .getElementById("verifyForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const orderNumber = document.getElementById("orderNumber").value;
+          const email = document.getElementById("email").value;
+          const zipCode = document.getElementById("zipCode").value;
+
+          const resultDiv = document.getElementById("result");
+
+          if (!email && !zipCode) {
+            resultDiv.className = "result error";
+            resultDiv.style.display = "block";
+            resultDiv.textContent = "Please enter either email or ZIP code";
+            return;
+          }
+
+          try {
+            const baseUrl = window.location.hostname === 'localhost' ? "http://localhost:5173" : window.location.origin;
+            const response = await fetch(
+              `${baseUrl}/api/orders/verify`,
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  orderNumber: parseInt(orderNumber),
+                  email: email || undefined,
+                  zipCode: zipCode || undefined,
+                }),
+              }
+            );
+
+            const data = await response.json();
+
+            if (data.success) {
+              resultDiv.className = "result success";
+              resultDiv.textContent = "✅ " + data.message;
+            } else {
+              resultDiv.className = "result error";
+              resultDiv.textContent = "❌ " + data.message;
+            }
+
+            resultDiv.style.display = "block";
+          } catch (error) {
+            resultDiv.className = "result error";
+            resultDiv.textContent = "❌ Error: " + error.message;
+            resultDiv.style.display = "block";
+          }
+        });
+
+      // Clear opposite field when one is filled
+      document.getElementById("email").addEventListener("input", (e) => {
+        if (e.target.value) document.getElementById("zipCode").value = "";
+      });
+
+      document.getElementById("zipCode").addEventListener("input", (e) => {
+        if (e.target.value) document.getElementById("email").value = "";
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,29 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "a9771c2e9614a8d420c678c22c599042"
+name = "Shopify AI Chatbot"
+application_url = "http://localhost:5173"
+embedded = true
+
+[build]
+automatically_update_urls_on_dev = true
+include_config_on_deploy = true
+
+[webhooks]
+api_version = "2024-01"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/uninstalled" ]
+  uri = "/webhooks"
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "read_products,read_orders,read_customers,read_content,read_shipping"
+use_legacy_install_flow = false
+
+[auth]
+redirect_urls = [
+  "http://localhost:5173/auth/callback",
+  "http://localhost:5173/auth/shopify/callback",
+  "http://localhost:5173/api/auth/callback"
+]
