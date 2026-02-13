@@ -18,7 +18,8 @@
       "Bash(tasklist:*)",
       "Bash(npx prisma migrate dev:*)",
       "Bash(npx prisma migrate diff:*)",
-      "Bash(npx prisma migrate:*)"
+      "Bash(npx prisma migrate:*)",
+      "Bash(xargs basename:*)"
     ]
   }
 }
