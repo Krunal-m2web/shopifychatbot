@@ -1,4 +1,4 @@
-import { AdminApiContext } from '@shopify/shopify-app-remix/server';
+import { AdminApiContext } from '@shopify/shopify-app-react-router/server';
 import { vectorStore } from '../vectorStore';
 import { generateEmbeddings } from '../rag/embeddings';
 import { v4 as uuidv4 } from 'uuid';
@@ -27,7 +27,7 @@ function stripHTML(html: string): string {
  * Sync store policies and pages from Shopify to the vector store
  */
 export async function syncPolicies(
-  admin: AdminApiContext['admin'],
+  admin: AdminApiContext,
   merchantId: string
 ): Promise<SyncResult> {
   const startTime = Date.now();

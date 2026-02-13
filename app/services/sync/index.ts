@@ -1,4 +1,4 @@
-import { AdminApiContext } from '@shopify/shopify-app-remix/server';
+import { AdminApiContext } from '@shopify/shopify-app-react-router/server';
 import { syncProducts, SyncResult } from './productSync';
 import { syncCollections } from './collectionSync';
 import { syncPolicies } from './policySync';
@@ -18,7 +18,7 @@ export interface FullSyncResult {
  * @param merchantId Merchant UUID
  */
 export async function fullSync(
-  admin: AdminApiContext['admin'],
+  admin: AdminApiContext,
   merchantId: string
 ): Promise<FullSyncResult> {
   console.log(`🚀 Starting full sync for merchant ${merchantId}...`);

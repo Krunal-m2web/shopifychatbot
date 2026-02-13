@@ -1,6 +1,6 @@
 {
   "buildCommand": "npm run build",
-  "framework": "remix",
+  "framework": "react-router",
   "headers": [
     {
       "source": "/widget/(.*)",

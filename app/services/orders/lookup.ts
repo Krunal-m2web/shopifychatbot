@@ -1,4 +1,4 @@
-import { AdminApiContext } from '@shopify/shopify-app-remix/server';
+import { AdminApiContext } from '@shopify/shopify-app-react-router/server';
 
 export interface OrderLookupResult {
   found: boolean;
@@ -13,7 +13,7 @@ export interface OrderLookupResult {
  * @param customerEmail Customer's email for verification
  */
 export async function lookupOrder(
-  admin: AdminApiContext['admin'],
+  admin: AdminApiContext,
   orderNumber: string,
   customerEmail: string
 ): Promise<OrderLookupResult> {
