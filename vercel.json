@@ -1,4 +1,6 @@
 {
+  "buildCommand": "npm run build",
+  "framework": "react-router",
   "headers": [
     {
       "source": "/widget/(.*)",
@@ -20,4 +22,5 @@
       "destination": "/build/widget/:path*"
     }
   ]
+  
 }
