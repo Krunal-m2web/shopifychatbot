@@ -19,7 +19,8 @@
       "Bash(npx prisma migrate dev:*)",
       "Bash(npx prisma migrate diff:*)",
       "Bash(npx prisma migrate:*)",
-      "Bash(xargs basename:*)"
+      "Bash(xargs basename:*)",
+      "Bash(git push:*)"
     ]
   }
 }
