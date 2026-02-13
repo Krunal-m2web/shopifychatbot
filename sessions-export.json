@@ -1,0 +1,21 @@
+[
+  {
+    "id": "offline_my-test-shop-123465.myshopify.com",
+    "shop": "my-test-shop-123465.myshopify.com",
+    "state": "",
+    "isOnline": false,
+    "scope": "write_products",
+    "expires": "2026-02-12T13:42:08.543Z",
+    "accessToken": "shpua_e02625c70f700d09b947e5fee190e13c",
+    "userId": null,
+    "firstName": null,
+    "lastName": null,
+    "email": null,
+    "accountOwner": false,
+    "locale": null,
+    "collaborator": false,
+    "emailVerified": false,
+    "refreshToken": "shprt_178ed316476f2a1081305803cef098ca",
+    "refreshTokenExpires": "2026-05-13T12:42:09.543Z"
+  }
+]
