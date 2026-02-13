@@ -1,254 +1,189 @@
-import { useEffect } from "react";
-import type {
-  ActionFunctionArgs,
-  HeadersFunction,
-  LoaderFunctionArgs,
-} from "react-router";
-import { useFetcher } from "react-router";
-import { useAppBridge } from "@shopify/app-bridge-react";
-import { authenticate } from "../shopify.server";
-import { boundary } from "@shopify/shopify-app-react-router/server";
+import type { LoaderFunctionArgs, ActionFunctionArgs } from 'react-router';
+import { useLoaderData, useFetcher } from 'react-router';
+import { authenticate } from '~/shopify.server';
+import prisma from '~/db.server';
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  await authenticate.admin(request);
+  const { session } = await authenticate.admin(request);
 
-  return null;
-};
+  // Get merchant
+  const merchant = await prisma.merchant.findUnique({
+    where: { shopDomain: session.shop },
+    select: { id: true, shopName: true },
+  });
 
-export const action = async ({ request }: ActionFunctionArgs) => {
-  const { admin } = await authenticate.admin(request);
-  const color = ["Red", "Orange", "Yellow", "Green"][
-    Math.floor(Math.random() * 4)
-  ];
-  const response = await admin.graphql(
-    `#graphql
-      mutation populateProduct($product: ProductCreateInput!) {
-        productCreate(product: $product) {
-          product {
-            id
-            title
-            handle
-            status
-            variants(first: 10) {
-              edges {
-                node {
-                  id
-                  price
-                  barcode
-                  createdAt
-                }
-              }
-            }
-          }
-        }
-      }`,
-    {
-      variables: {
-        product: {
-          title: `${color} Snowboard`,
-        },
+  if (!merchant) {
+    return { stats: null, recentConversations: [] };
+  }
+
+  // Get stats
+  const [
+    totalConversations,
+    activeConversations,
+    escalatedConversations,
+    totalMessages,
+  ] = await Promise.all([
+    prisma.conversation.count({ where: { merchantId: merchant.id } }),
+    prisma.conversation.count({
+      where: { merchantId: merchant.id, status: 'active' },
+    }),
+    prisma.conversation.count({
+      where: { merchantId: merchant.id, status: 'escalated' },
+    }),
+    prisma.message.count({
+      where: { conversation: { merchantId: merchant.id } },
+    }),
+  ]);
+
+  // Calculate AI resolution rate
+  const resolvedByAI = totalConversations - escalatedConversations;
+  const resolutionRate =
+    totalConversations > 0 ? Math.round((resolvedByAI / totalConversations) * 100) : 0;
+
+  // Get recent conversations
+  const recentConversations = await prisma.conversation.findMany({
+    where: { merchantId: merchant.id },
+    orderBy: { createdAt: 'desc' },
+    take: 5,
+    include: {
+      messages: {
+        orderBy: { createdAt: 'desc' },
+        take: 1,
       },
     },
-  );
-  const responseJson = await response.json();
-
-  const product = responseJson.data!.productCreate!.product!;
-  const variantId = product.variants.edges[0]!.node!.id!;
-
-  const variantResponse = await admin.graphql(
-    `#graphql
-    mutation shopifyReactRouterTemplateUpdateVariant($productId: ID!, $variants: [ProductVariantsBulkInput!]!) {
-      productVariantsBulkUpdate(productId: $productId, variants: $variants) {
-        productVariants {
-          id
-          price
-          barcode
-          createdAt
-        }
-      }
-    }`,
-    {
-      variables: {
-        productId: product.id,
-        variants: [{ id: variantId, price: "100.00" }],
-      },
-    },
-  );
-
-  const variantResponseJson = await variantResponse.json();
+  });
 
   return {
-    product: responseJson!.data!.productCreate!.product,
-    variant:
-      variantResponseJson!.data!.productVariantsBulkUpdate!.productVariants,
+    stats: {
+      totalConversations,
+      activeConversations,
+      escalatedConversations,
+      totalMessages,
+      resolutionRate,
+    },
+    recentConversations,
+    merchantName: merchant.shopName || session.shop,
   };
 };
 
-export default function Index() {
-  const fetcher = useFetcher<typeof action>();
+export const action = async ({ request }: ActionFunctionArgs) => {
+  const { session } = await authenticate.admin(request);
 
-  const shopify = useAppBridge();
-  const isLoading =
-    ["loading", "submitting"].includes(fetcher.state) &&
-    fetcher.formMethod === "POST";
+  // Trigger manual sync
+  const response = await fetch(`${process.env.APP_URL}/api/sync`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ background: true }),
+  });
 
-  useEffect(() => {
-    if (fetcher.data?.product?.id) {
-      shopify.toast.show("Product created");
-    }
-  }, [fetcher.data?.product?.id, shopify]);
+  return { success: true };
+};
 
-  const generateProduct = () => fetcher.submit({}, { method: "POST" });
+export default function DashboardHome() {
+  const { stats, recentConversations, merchantName } = useLoaderData<typeof loader>();
+  const fetcher = useFetcher();
+
+  const handleSync = () => {
+    fetcher.submit({}, { method: 'POST' });
+  };
+
+  if (!stats) {
+    return (
+      <s-page heading="Dashboard">
+        <s-section>
+          <s-paragraph>Loading...</s-paragraph>
+        </s-section>
+      </s-page>
+    );
+  }
 
   return (
-    <s-page heading="Shopify app template">
-      <s-button slot="primary-action" onClick={generateProduct}>
-        Generate a product
+    <s-page heading={`Welcome, ${merchantName}!`}>
+      <s-button slot="primary-action" onClick={handleSync} loading={fetcher.state !== 'idle'}>
+        Sync Products
       </s-button>
 
-      <s-section heading="Congrats on creating a new Shopify app 🎉">
-        <s-paragraph>
-          This embedded app template uses{" "}
-          <s-link
-            href="https://shopify.dev/docs/apps/tools/app-bridge"
-            target="_blank"
-          >
-            App Bridge
-          </s-link>{" "}
-          interface examples like an{" "}
-          <s-link href="/app/additional">additional page in the app nav</s-link>
-          , as well as an{" "}
-          <s-link
-            href="https://shopify.dev/docs/api/admin-graphql"
-            target="_blank"
-          >
-            Admin GraphQL
-          </s-link>{" "}
-          mutation demo, to provide a starting point for app development.
-        </s-paragraph>
-      </s-section>
-      <s-section heading="Get started with products">
-        <s-paragraph>
-          Generate a product with GraphQL and get the JSON output for that
-          product. Learn more about the{" "}
-          <s-link
-            href="https://shopify.dev/docs/api/admin-graphql/latest/mutations/productCreate"
-            target="_blank"
-          >
-            productCreate
-          </s-link>{" "}
-          mutation in our API references.
-        </s-paragraph>
-        <s-stack direction="inline" gap="base">
-          <s-button
-            onClick={generateProduct}
-            {...(isLoading ? { loading: true } : {})}
-          >
-            Generate a product
-          </s-button>
-          {fetcher.data?.product && (
-            <s-button
-              onClick={() => {
-                shopify.intents.invoke?.("edit:shopify/Product", {
-                  value: fetcher.data?.product?.id,
-                });
-              }}
-              target="_blank"
-              variant="tertiary"
-            >
-              Edit product
-            </s-button>
-          )}
-        </s-stack>
-        {fetcher.data?.product && (
-          <s-section heading="productCreate mutation">
-            <s-stack direction="block" gap="base">
-              <s-box
-                padding="base"
-                borderWidth="base"
-                borderRadius="base"
-                background="subdued"
-              >
-                <pre style={{ margin: 0 }}>
-                  <code>{JSON.stringify(fetcher.data.product, null, 2)}</code>
-                </pre>
-              </s-box>
-
-              <s-heading>productVariantsBulkUpdate mutation</s-heading>
-              <s-box
-                padding="base"
-                borderWidth="base"
-                borderRadius="base"
-                background="subdued"
-              >
-                <pre style={{ margin: 0 }}>
-                  <code>{JSON.stringify(fetcher.data.variant, null, 2)}</code>
-                </pre>
-              </s-box>
+      {/* Stats Cards */}
+      <s-section>
+        <s-stack direction="inline" gap="large" wrap>
+          <s-box padding="large" borderWidth="base" borderRadius="base" style={{ flex: 1, minWidth: '200px' }}>
+            <s-stack direction="block" gap="small">
+              <s-text variant="headingLg">{stats.totalConversations}</s-text>
+              <s-text tone="subdued">Total Conversations</s-text>
             </s-stack>
-          </s-section>
+          </s-box>
+
+          <s-box padding="large" borderWidth="base" borderRadius="base" style={{ flex: 1, minWidth: '200px' }}>
+            <s-stack direction="block" gap="small">
+              <s-text variant="headingLg">{stats.resolutionRate}%</s-text>
+              <s-text tone="subdued">AI Resolution Rate</s-text>
+            </s-stack>
+          </s-box>
+
+          <s-box padding="large" borderWidth="base" borderRadius="base" style={{ flex: 1, minWidth: '200px' }}>
+            <s-stack direction="block" gap="small">
+              <s-text variant="headingLg">{stats.activeConversations}</s-text>
+              <s-text tone="subdued">Active Conversations</s-text>
+            </s-stack>
+          </s-box>
+
+          <s-box padding="large" borderWidth="base" borderRadius="base" style={{ flex: 1, minWidth: '200px' }}>
+            <s-stack direction="block" gap="small">
+              <s-text variant="headingLg">{stats.escalatedConversations}</s-text>
+              <s-text tone="subdued">Escalations</s-text>
+            </s-stack>
+          </s-box>
+        </s-stack>
+      </s-section>
+
+      {/* Recent Conversations */}
+      <s-section heading="Recent Conversations">
+        {recentConversations.length === 0 ? (
+          <s-paragraph>No conversations yet. Your chatbot is ready to help customers!</s-paragraph>
+        ) : (
+          <s-stack direction="block" gap="base">
+            {recentConversations.map((conv) => (
+              <s-box key={conv.id} padding="base" borderWidth="base" borderRadius="base">
+                <s-stack direction="block" gap="tight">
+                  <s-stack direction="inline" gap="base" alignItems="center">
+                    <s-text variant="headingSm">
+                      {conv.customerName || conv.customerEmail || 'Anonymous'}
+                    </s-text>
+                    <s-badge tone={conv.status === 'escalated' ? 'attention' : 'info'}>
+                      {conv.status}
+                    </s-badge>
+                  </s-stack>
+                  {conv.messages[0] && (
+                    <s-text tone="subdued">
+                      {conv.messages[0].content.substring(0, 100)}...
+                    </s-text>
+                  )}
+                  <s-text tone="subdued" variant="bodySm">
+                    {new Date(conv.createdAt).toLocaleString()}
+                  </s-text>
+                </s-stack>
+              </s-box>
+            ))}
+          </s-stack>
         )}
       </s-section>
 
-      <s-section slot="aside" heading="App template specs">
-        <s-paragraph>
-          <s-text>Framework: </s-text>
-          <s-link href="https://reactrouter.com/" target="_blank">
-            React Router
-          </s-link>
-        </s-paragraph>
-        <s-paragraph>
-          <s-text>Interface: </s-text>
-          <s-link
-            href="https://shopify.dev/docs/api/app-home/using-polaris-components"
-            target="_blank"
-          >
-            Polaris web components
-          </s-link>
-        </s-paragraph>
-        <s-paragraph>
-          <s-text>API: </s-text>
-          <s-link
-            href="https://shopify.dev/docs/api/admin-graphql"
-            target="_blank"
-          >
-            GraphQL
-          </s-link>
-        </s-paragraph>
-        <s-paragraph>
-          <s-text>Database: </s-text>
-          <s-link href="https://www.prisma.io/" target="_blank">
-            Prisma
-          </s-link>
-        </s-paragraph>
-      </s-section>
-
-      <s-section slot="aside" heading="Next steps">
+      {/* Getting Started */}
+      <s-section slot="aside" heading="Getting Started">
         <s-unordered-list>
           <s-list-item>
-            Build an{" "}
-            <s-link
-              href="https://shopify.dev/docs/apps/getting-started/build-app-example"
-              target="_blank"
-            >
-              example app
-            </s-link>
+            <s-link href="/app/settings">Customize your chat widget</s-link>
           </s-list-item>
           <s-list-item>
-            Explore Shopify&apos;s API with{" "}
-            <s-link
-              href="https://shopify.dev/docs/apps/tools/graphiql-admin-api"
-              target="_blank"
-            >
-              GraphiQL
-            </s-link>
+            <s-link href="/app/conversations">View all conversations</s-link>
+          </s-list-item>
+          <s-list-item>
+            <s-link href="/app/analytics">Check your analytics</s-link>
           </s-list-item>
         </s-unordered-list>
       </s-section>
     </s-page>
   );
 }
-
-export const headers: HeadersFunction = (headersArgs) => {
-  return boundary.headers(headersArgs);
-};

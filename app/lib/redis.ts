@@ -16,6 +16,17 @@ function initializeRedis(): Redis {
   const client = new Redis(redisUrl, {
     maxRetriesPerRequest: null, // Required for BullMQ
     enableReadyCheck: false,
+    lazyConnect: true,
+    connectTimeout: 10000,
+    retryStrategy(times) {
+      if (times > 3) return null; // Stop after 3 retries
+      return Math.min(times * 500, 2000);
+    },
+    reconnectOnError(err) {
+      // Reconnect on connection reset errors
+      return err.message.includes('ECONNRESET') || err.message.includes('ETIMEDOUT');
+    },
+    tls: redisUrl.startsWith('rediss://') ? {} : undefined,
   });
 
   // Connection event handlers
