@@ -1,0 +1,14 @@
+api_version = "2026-01"
+
+uid = "aabd883f-f8a6-8222-4752-71740d92ceed1f3f9cc9"
+
+type = "theme"
+name = "Chat Bot Widget"
+
+[settings]
+  [[settings.fields]]
+    key = "enable_widget"
+    type = "boolean"
+    name = "Enable Chat Widget"
+    description = "Toggle the chat widget on your storefront"
+    default = true

@@ -16,7 +16,7 @@ export default defineConfig({
       },
     },
     cssCodeSplit: false,
-    outDir: '../build/widget',
+    outDir: '../public/widget',
   },
   define: {
     'process.env.NODE_ENV': JSON.stringify('production'),

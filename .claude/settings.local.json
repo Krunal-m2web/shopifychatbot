@@ -22,7 +22,18 @@
       "Bash(xargs basename:*)",
       "Bash(git push:*)",
       "Bash(git add:*)",
-      "Bash(git commit -m \"$\\(cat <<''EOF''\nAdd explicit Vite resolve alias for ~ path\n\nThe vite-tsconfig-paths plugin wasn''t resolving the ~ alias\nreliably on Vercel''s Linux environment. Adding an explicit\nresolve.alias in vite.config.ts ensures it works everywhere.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")"
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nAdd explicit Vite resolve alias for ~ path\n\nThe vite-tsconfig-paths plugin wasn''t resolving the ~ alias\nreliably on Vercel''s Linux environment. Adding an explicit\nresolve.alias in vite.config.ts ensures it works everywhere.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(npx shopify app dev)",
+      "Bash(shopify app dev:*)",
+      "Bash(npx prisma:*)",
+      "Bash(npm ls:*)",
+      "Bash(npx react-router dev:*)",
+      "Bash(netstat:*)",
+      "Bash(dir:*)",
+      "mcp__shopify-dev-mcp__learn_shopify_api",
+      "mcp__shopify-dev-mcp__search_docs_chunks",
+      "mcp__shopify-dev-mcp__introspect_graphql_schema",
+      "mcp__shopify-dev-mcp__fetch_full_docs"
     ]
   }
 }

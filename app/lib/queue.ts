@@ -1,14 +1,20 @@
 import { Queue } from 'bullmq';
-import { redis } from './redis';
+import { getRedis } from './redis';
 
 // Lazily create queues to avoid connecting on import
 let _webhookQueue: Queue | null = null;
 let _syncQueue: Queue | null = null;
 
+function createQueueConnection() {
+  // BullMQ needs a real Redis instance, not a Proxy.
+  // getRedis() returns the actual ioredis client.
+  return getRedis();
+}
+
 function getWebhookQueue(): Queue {
   if (!_webhookQueue) {
     _webhookQueue = new Queue('webhooks', {
-      connection: redis,
+      connection: createQueueConnection(),
       defaultJobOptions: {
         attempts: 3,
         backoff: {
@@ -30,7 +36,7 @@ function getWebhookQueue(): Queue {
 function getSyncQueue(): Queue {
   if (!_syncQueue) {
     _syncQueue = new Queue('sync', {
-      connection: redis,
+      connection: createQueueConnection(),
       defaultJobOptions: {
         attempts: 2,
         backoff: {
@@ -88,5 +94,5 @@ export async function enqueueSyncJob(payload: {
 export async function closeQueues() {
   if (_webhookQueue) await _webhookQueue.close();
   if (_syncQueue) await _syncQueue.close();
-  await redis.quit();
+  await getRedis().quit();
 }

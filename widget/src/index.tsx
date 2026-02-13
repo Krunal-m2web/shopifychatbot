@@ -7,6 +7,7 @@ import Widget from './Widget';
   const scripts = document.getElementsByTagName('script');
   const currentScript = scripts[scripts.length - 1];
   const merchantId = currentScript.getAttribute('data-merchant-id');
+  const appUrl = currentScript.getAttribute('data-app-url') || '';
 
   if (!merchantId) {
     console.error('Shopify Chat Widget: data-merchant-id attribute is required');
@@ -24,5 +25,5 @@ import Widget from './Widget';
   shadowRoot.appendChild(widgetMount);
 
   // Render the widget
-  render(<Widget merchantId={merchantId} />, widgetMount);
+  render(<Widget merchantId={merchantId} appUrl={appUrl} />, widgetMount);
 })();

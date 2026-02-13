@@ -6,9 +6,10 @@ import './styles/widget.css';
 
 interface WidgetProps {
   merchantId: string;
+  appUrl: string;
 }
 
-export default function Widget({ merchantId }: WidgetProps) {
+export default function Widget({ merchantId, appUrl }: WidgetProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [config, setConfig] = useState<WidgetConfig | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -17,7 +18,7 @@ export default function Widget({ merchantId }: WidgetProps) {
   useEffect(() => {
     const shopDomain = window.location.hostname;
 
-    fetch(`/api/widget-config?shop=${shopDomain}`)
+    fetch(`${appUrl}/api/widget-config?shop=${shopDomain}`)
       .then(res => res.json())
       .then(data => {
         setConfig(data.config);
@@ -49,6 +50,7 @@ export default function Widget({ merchantId }: WidgetProps) {
       {isOpen && (
         <ChatWindow
           merchantId={merchantId}
+          appUrl={appUrl}
           config={config}
           onClose={() => setIsOpen(false)}
         />

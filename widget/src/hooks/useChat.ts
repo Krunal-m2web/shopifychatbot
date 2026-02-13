@@ -2,7 +2,7 @@ import { useState, useEffect } from 'preact/hooks';
 import Ably from 'ably';
 import { Message } from '../types';
 
-export function useChat(merchantId: string) {
+export function useChat(merchantId: string, appUrl: string) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
@@ -24,12 +24,12 @@ export function useChat(merchantId: string) {
     const initAbly = async () => {
       try {
         // Get Ably token
-        const response = await fetch(`/api/ably-token?sessionId=${sessionId}`);
+        const response = await fetch(`${appUrl}/api/ably-token?sessionId=${sessionId}`);
         const tokenRequest = await response.json();
 
         // Initialize Ably client
         const ablyClient = new Ably.Realtime({
-          authUrl: `/api/ably-token?sessionId=${sessionId}`,
+          authUrl: `${appUrl}/api/ably-token?sessionId=${sessionId}`,
         });
 
         ablyClient.connection.on('connected', () => {
@@ -92,7 +92,7 @@ export function useChat(merchantId: string) {
       setMessages(prev => [...prev, userMessage]);
 
       // Send to server
-      const response = await fetch('/api/chat', {
+      const response = await fetch(`${appUrl}/api/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

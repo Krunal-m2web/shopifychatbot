@@ -1,0 +1,43 @@
+{% if block.settings.enable_widget %}
+<script>
+  (function() {
+    var appUrl = '{{ shop.metafields.chatbot.app_url | default: "" }}';
+    if (!appUrl) {
+      console.warn('Chat Bot: No app_url found. Please open the Chat Bot app in your Shopify admin.');
+      return;
+    }
+
+    var shop = '{{ shop.permanent_domain }}';
+    fetch(appUrl + '/api/widget-config?shop=' + encodeURIComponent(shop))
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data.merchantId) {
+          var script = document.createElement('script');
+          script.src = appUrl + '/widget/widget.iife.js';
+          script.setAttribute('data-merchant-id', data.merchantId);
+          script.setAttribute('data-app-url', appUrl);
+          script.defer = true;
+          document.body.appendChild(script);
+        }
+      })
+      .catch(function(err) {
+        console.error('Chat widget failed to load:', err);
+      });
+  })();
+</script>
+{% endif %}
+
+{% schema %}
+{
+  "name": "Chat Bot",
+  "target": "body",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "enable_widget",
+      "label": "Enable Chat Widget",
+      "default": true
+    }
+  ]
+}
+{% endschema %}

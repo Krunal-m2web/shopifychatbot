@@ -2,9 +2,10 @@ import type { LoaderFunctionArgs, ActionFunctionArgs } from 'react-router';
 import { useLoaderData, useFetcher } from 'react-router';
 import { authenticate } from '~/shopify.server';
 import prisma from '~/db.server';
+import { checkWidgetActivationStatus } from '~/lib/theme-status.server';
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
+  const { session, admin } = await authenticate.admin(request);
 
   // Get merchant
   const merchant = await prisma.merchant.findUnique({
@@ -13,15 +14,20 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   });
 
   if (!merchant) {
-    return { stats: null, recentConversations: [] };
+    return {
+      stats: null,
+      recentConversations: [],
+      widgetStatus: { isActive: false, activationUrl: '' },
+    };
   }
 
-  // Get stats
+  // Get stats and widget status in parallel
   const [
     totalConversations,
     activeConversations,
     escalatedConversations,
     totalMessages,
+    widgetStatus,
   ] = await Promise.all([
     prisma.conversation.count({ where: { merchantId: merchant.id } }),
     prisma.conversation.count({
@@ -33,6 +39,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     prisma.message.count({
       where: { conversation: { merchantId: merchant.id } },
     }),
+    checkWidgetActivationStatus(admin).catch(() => ({
+      isActive: false,
+      activationUrl: '',
+    })),
   ]);
 
   // Calculate AI resolution rate
@@ -63,6 +73,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     },
     recentConversations,
     merchantName: merchant.shopName || session.shop,
+    widgetStatus,
   };
 };
 
@@ -82,7 +93,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function DashboardHome() {
-  const { stats, recentConversations, merchantName } = useLoaderData<typeof loader>();
+  const { stats, recentConversations, merchantName, widgetStatus } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
 
   const handleSync = () => {
@@ -104,6 +115,33 @@ export default function DashboardHome() {
       <s-button slot="primary-action" onClick={handleSync} loading={fetcher.state !== 'idle'}>
         Sync Products
       </s-button>
+
+      {/* Widget Activation Status */}
+      {!widgetStatus.isActive && (
+        <s-section>
+          <s-banner tone="warning" title="Activate your chat widget">
+            <s-paragraph>
+              Your chatbot is ready but not yet visible on your store. Click the button below to activate it in your theme editor — just toggle it on and click Save.
+            </s-paragraph>
+            <s-button
+              variant="primary"
+              onClick={() => open(widgetStatus.activationUrl, '_top')}
+            >
+              Activate Chat Widget
+            </s-button>
+          </s-banner>
+        </s-section>
+      )}
+
+      {widgetStatus.isActive && (
+        <s-section>
+          <s-banner tone="success" title="Chat widget is active">
+            <s-paragraph>
+              Your chatbot is live on your storefront and ready to help customers.
+            </s-paragraph>
+          </s-banner>
+        </s-section>
+      )}
 
       {/* Stats Cards */}
       <s-section>
@@ -170,19 +208,26 @@ export default function DashboardHome() {
         )}
       </s-section>
 
-      {/* Getting Started */}
-      <s-section slot="aside" heading="Getting Started">
-        <s-unordered-list>
-          <s-list-item>
-            <s-link href="/app/settings">Customize your chat widget</s-link>
-          </s-list-item>
-          <s-list-item>
-            <s-link href="/app/conversations">View all conversations</s-link>
-          </s-list-item>
-          <s-list-item>
-            <s-link href="/app/analytics">Check your analytics</s-link>
-          </s-list-item>
-        </s-unordered-list>
+      {/* Setup Status */}
+      <s-section slot="aside" heading="Setup Status">
+        <s-stack direction="block" gap="base">
+          <s-stack direction="inline" gap="small" alignItems="center">
+            <s-badge tone={widgetStatus.isActive ? 'success' : 'attention'}>
+              {widgetStatus.isActive ? 'Active' : 'Inactive'}
+            </s-badge>
+            <s-text>Chat Widget</s-text>
+          </s-stack>
+
+          {!widgetStatus.isActive && widgetStatus.activationUrl && (
+            <s-link href={widgetStatus.activationUrl} target="_top">
+              Activate in theme editor
+            </s-link>
+          )}
+
+          <s-link href="/app/settings">Widget settings</s-link>
+          <s-link href="/app/conversations">View conversations</s-link>
+          <s-link href="/app/analytics">Analytics</s-link>
+        </s-stack>
       </s-section>
     </s-page>
   );

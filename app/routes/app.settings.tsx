@@ -3,9 +3,10 @@ import { useLoaderData, useFetcher } from 'react-router';
 import { useState } from 'react';
 import { authenticate } from '~/shopify.server';
 import prisma from '~/db.server';
+import { checkWidgetActivationStatus } from '~/lib/theme-status.server';
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
+  const { session, admin } = await authenticate.admin(request);
 
   const merchant = await prisma.merchant.findUnique({
     where: { shopDomain: session.shop },
@@ -18,9 +19,16 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   const config = merchant.widgetConfig as any;
 
+  let widgetStatus = { isActive: false, activationUrl: '' };
+  try {
+    widgetStatus = await checkWidgetActivationStatus(admin);
+  } catch {
+    // Silently fail - show as inactive
+  }
+
   return {
-    merchantId: merchant.id,
     shopDomain: merchant.shopDomain,
+    widgetStatus,
     widgetConfig: {
       primaryColor: config.primaryColor || '#2563EB',
       position: config.position || 'bottom-right',
@@ -55,7 +63,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function SettingsPage() {
-  const { merchantId, shopDomain, widgetConfig } = useLoaderData<typeof loader>();
+  const { shopDomain, widgetStatus, widgetConfig } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
 
   const [config, setConfig] = useState(widgetConfig);
@@ -69,8 +77,6 @@ export default function SettingsPage() {
 
     fetcher.submit(formData, { method: 'POST' });
   };
-
-  const embedCode = `<script src="${process.env.APP_URL || 'https://your-app.vercel.app'}/widget/widget.iife.js" data-merchant-id="${merchantId}" defer></script>`;
 
   return (
     <s-page heading="Settings">
@@ -129,35 +135,23 @@ export default function SettingsPage() {
         </s-stack>
       </s-section>
 
-      {/* Widget Installation */}
-      <s-section heading="Widget Installation">
-        <s-stack direction="block" gap="base">
-          <s-paragraph>
-            Add this code to your theme's layout file (usually theme.liquid) before the closing &lt;/body&gt; tag:
-          </s-paragraph>
-
-          <s-box padding="base" borderWidth="base" borderRadius="base" background="subdued">
-            <pre style={{ margin: 0, overflow: 'auto' }}>
-              <code>{embedCode}</code>
-            </pre>
-          </s-box>
-
-          <s-button
-            variant="secondary"
-            onClick={() => {
-              navigator.clipboard.writeText(embedCode);
-            }}
-          >
-            Copy Code
-          </s-button>
-        </s-stack>
-      </s-section>
-
-      {/* Store Info */}
+      {/* Store Info & Widget Status */}
       <s-section slot="aside" heading="Store Information">
         <s-stack direction="block" gap="base">
-          <s-text tone="subdued">Shop Domain: {shopDomain}</s-text>
-          <s-text tone="subdued" variant="bodySm">Merchant ID: {merchantId}</s-text>
+          <s-stack direction="inline" gap="small" alignItems="center">
+            <s-badge tone={widgetStatus.isActive ? 'success' : 'attention'}>
+              {widgetStatus.isActive ? 'Active' : 'Inactive'}
+            </s-badge>
+            <s-text>Widget Status</s-text>
+          </s-stack>
+
+          {!widgetStatus.isActive && widgetStatus.activationUrl && (
+            <s-link href={widgetStatus.activationUrl} target="_top">
+              Activate widget
+            </s-link>
+          )}
+
+          <s-text tone="subdued">Shop: {shopDomain}</s-text>
         </s-stack>
       </s-section>
     </s-page>

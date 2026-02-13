@@ -7,12 +7,13 @@ import { WidgetConfig } from './types';
 
 interface ChatWindowProps {
   merchantId: string;
+  appUrl: string;
   config: WidgetConfig;
   onClose: () => void;
 }
 
-export default function ChatWindow({ merchantId, config, onClose }: ChatWindowProps) {
-  const { messages, isTyping, isConnected, sendMessage } = useChat(merchantId);
+export default function ChatWindow({ merchantId, appUrl, config, onClose }: ChatWindowProps) {
+  const { messages, isTyping, isConnected, sendMessage } = useChat(merchantId, appUrl);
 
   return (
     <div className="chat-window">

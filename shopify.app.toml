@@ -2,7 +2,7 @@
 
 client_id = "3d692e45979d5ac97cdfad4f569e0d76"
 name = "Chat Bot"
-application_url = "https://shopifychatbot-gold.vercel.app"
+application_url = "https://band-cord-harvard-mention.trycloudflare.com"
 embedded = true
 
 [build]
@@ -29,7 +29,7 @@ api_version = "2026-01"
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "read_products,read_orders,read_customers,read_content"
+scopes = "read_products,read_orders,read_customers,read_content,read_themes"
 optional_scopes = [ ]
 use_legacy_install_flow = false
 
