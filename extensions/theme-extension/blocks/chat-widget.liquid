@@ -1,0 +1,37 @@
+{% schema %}
+{
+  "name": "AI Chat Widget",
+  "target": "body",
+  "settings": [
+    {
+      "type": "text",
+      "id": "api_url",
+      "label": "API URL",
+      "default": "https://your-tunnel-url.trycloudflare.com",
+      "info": "⚠️ Do NOT use localhost. Shopify blocks local URLs. Use your app tunnel URL."
+    },
+    {
+      "type": "text",
+      "id": "merchant_id",
+      "label": "Merchant ID",
+      "default": "1"
+    }
+  ]
+}
+{% endschema %}
+
+<div id="shopify-ai-chat-widget"></div>
+
+<script>
+  const normalizedApiUrl = ("{{ block.settings.api_url }}" || "")
+    .replace(/\/+$/, "")
+    .replace(/\/api\/chat\/?$/, "");
+
+  window.ShopifyAIChatConfig = {
+    apiUrl: normalizedApiUrl,
+    merchantId: "{{ block.settings.merchant_id }}"
+  };
+</script>
+
+<link rel="stylesheet" href="{{ 'shopify-ai-chat.css' | asset_url }}">
+<script src="{{ 'shopify-ai-chat.iife.js' | asset_url }}" defer></script>
